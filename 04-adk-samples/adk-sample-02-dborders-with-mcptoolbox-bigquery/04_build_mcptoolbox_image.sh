@@ -1,0 +1,1 @@
+gcloud builds submit --tag us-central1-docker.pkg.dev/genai-app-builder/mcptoolbox/samplebqmcptoolbox:v1.0 .

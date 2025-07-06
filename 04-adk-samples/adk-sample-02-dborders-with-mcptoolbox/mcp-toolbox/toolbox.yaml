@@ -1,0 +1,195 @@
+sources:
+   alloydb-orders:
+     kind: "alloydb-postgres"
+     project: "genai-app-builder"
+     region: "us-central1"
+     cluster: "vector-cluster"
+     instance: "shopping-cluster-primary"
+     database: "agentorders"
+tools:
+  get-order-by-id:
+    kind: postgres-sql
+    source: alloydb-orders
+    description: Retrieve details of a specific order by its unique order ID, including all purchased products.
+    parameters:
+      - name: order_id
+        type: string
+        description: The unique identifier (UUID) of the order.
+    statement: |
+      SELECT
+          o.order_id,
+          o.customer_email,
+          o.order_date,
+          o.total_amount,
+          o.status,
+          json_agg(json_build_object(
+              'product_id', p.product_id,
+              'product_name', p.product_name,
+              'description', p.description,
+              'unit_price', op.unit_price,
+              'quantity', op.quantity
+          )) AS products
+      FROM
+          orders o
+      JOIN
+          order_products op ON o.order_id = op.order_id
+      JOIN
+          products p ON op.product_id = p.product_id
+      WHERE
+          o.order_id = $1
+      GROUP BY
+          o.order_id, o.customer_email, o.order_date, o.total_amount, o.status;
+  list-orders-by-customer-email:
+    kind: postgres-sql
+    source: alloydb-orders
+    description: List all orders placed by a specific customer, identified by their email address.
+    parameters:
+      - name: customer_email
+        type: string
+        description: The email address of the customer.
+    statement: |
+      SELECT
+          o.order_id,
+          o.customer_email,
+          o.order_date,
+          o.total_amount,
+          o.status,
+          json_agg(json_build_object(
+              'product_id', p.product_id,
+              'product_name', p.product_name,
+              'description', p.description,
+              'unit_price', op.unit_price,
+              'quantity', op.quantity
+          )) AS products
+      FROM
+          orders o
+      JOIN
+          order_products op ON o.order_id = op.order_id
+      JOIN
+          products p ON op.product_id = p.product_id
+      WHERE
+          o.customer_email = $1
+      GROUP BY
+          o.order_id, o.customer_email, o.order_date, o.total_amount, o.status
+      ORDER BY
+          o.order_date DESC;
+  list-orders-by-email-and-product:
+    kind: postgres-sql
+    source: alloydb-orders
+    description: Find orders made by a specific customer that include a particular product.
+    parameters:
+      - name: customer_email
+        type: string
+        description: The email address of the customer.
+      - name: product_name
+        type: string
+        description: The name of the product purchased (case-insensitive partial match).
+    statement: |
+      SELECT
+          o.order_id,
+          o.customer_email,
+          o.order_date,
+          o.total_amount,
+          o.status,
+          json_agg(json_build_object(
+              'product_id', p.product_id,
+              'product_name', p.product_name,
+              'description', p.description,
+              'unit_price', op.unit_price,
+              'quantity', op.quantity
+          )) AS products
+      FROM
+          orders o
+      JOIN
+          order_products op ON o.order_id = op.order_id
+      JOIN
+          products p ON op.product_id = p.product_id
+      WHERE
+          o.customer_email = $1 AND p.product_name ILIKE $2
+      GROUP BY
+          o.order_id, o.customer_email, o.order_date, o.total_amount, o.status
+      ORDER BY
+          o.order_date DESC;
+  find-similar-products:
+    kind: postgres-sql
+    source: alloydb-orders
+    description: Find products with descriptions semantically similar to a given query string. The query will be automatically converted into an embedding.
+    parameters:
+      - name: query_text
+        type: string
+        description: The text description or query for semantic search.
+    statement: |
+      SELECT
+          product_id,
+          product_name,
+          description,
+          price,
+          stock_quantity,
+          1 - (embedding <=> embedding('text-multilingual-embedding-002', $1)::vector) AS similarity_score
+      FROM
+          products
+      WHERE
+          1 - (embedding <=> embedding('text-multilingual-embedding-002', $1)::vector) > 0.7
+      ORDER BY
+          embedding <=> embedding('text-multilingual-embedding-002', $1)::vector
+      LIMIT 10;
+  find-product-by-name:
+    kind: postgres-sql
+    source: alloydb-orders
+    description: Search for a product by its name.
+    parameters:
+      - name: product_name_query
+        type: string
+        description: The name of the product to search for (case-insensitive partial match).
+    statement: |
+      SELECT
+          product_id,
+          product_name,
+          description,
+          price,
+          stock_quantity
+      FROM
+          products
+      WHERE
+          product_name ILIKE $1;
+  create-order-header:
+    kind: postgres-sql
+    source: alloydb-orders
+    description: Create a new order header, returning the new order's ID. The total_amount is initialized to 0.00 and status to 'pending'. Product details must be added separately using 'add-order-product-item'.
+    parameters:
+      - name: customer_email
+        type: string
+        description: The email address of the customer placing the order.
+    statement: |
+      INSERT INTO orders (customer_email, total_amount, status)
+      VALUES ($1, 0.00, 'pending')
+      RETURNING order_id, total_amount, status;
+  add-order-product-item:
+    kind: postgres-sql
+    source: alloydb-orders
+    description: Add a single product item to an existing order. The unit_price should be the product's price at the time of purchase.
+    parameters:
+      - name: order_id
+        type: string
+        description: The ID of the existing order to add the product to.
+      - name: product_id
+        type: string
+        description: The ID of the product to add.
+      - name: quantity
+        type: integer
+        description: The quantity of the product. Must be greater than 0.
+      - name: unit_price
+        type: string
+        description: The price of the product at the time of purchase.
+    statement: |
+      INSERT INTO order_products (order_id, product_id, quantity, unit_price)
+      VALUES ($1, $2, $3, $4);
+toolsets:
+   my_first_toolset:
+     - get-order-by-id
+     - list-orders-by-customer-email
+     - list-orders-by-email-and-product
+     - find-similar-products # Unified semantic search endpoint
+     - find-product-by-name
+     - create-order-header
+     - add-order-product-item

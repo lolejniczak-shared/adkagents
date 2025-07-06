@@ -1,0 +1,28 @@
+erDiagram
+    orders ||--o{ order_products : "contains"
+    products ||--o{ order_products : "part_of"
+
+    orders {
+        UUID order_id PK "Unique identifier for each order"
+        VARCHAR customer_email "Email address of the customer"
+        TIMESTAMP order_date "Date and time when the order was placed"
+        NUMERIC total_amount "Total amount of the order"
+        VARCHAR status "Current status of the order"
+    }
+
+    products {
+        UUID product_id PK "Unique identifier for each product"
+        VARCHAR product_name UK "Name of the product (Unique)"
+        TEXT description "Detailed description of the product"
+        NUMERIC price "Price of the product"
+        INT stock_quantity "Current stock quantity"
+        VECTOR embedding "Vector embedding for semantic search (768-dim)"
+    }
+
+    order_products {
+        UUID order_product_id PK "Unique identifier for each line item"
+        UUID order_id FK "Foreign key to orders table"
+        UUID product_id FK "Foreign key to products table"
+        INT quantity "Quantity of the product in the order"
+        NUMERIC unit_price "Price of the product at purchase"
+    }
