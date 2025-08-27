@@ -1,0 +1,31 @@
+[project]
+name = "adk-Workshop"
+version = "0.1.0"
+authors = [
+  { name="Your Name", email="you@example.com" },
+]
+description = "Google Agent Development Kit Workshop"
+readme = "README.md"
+requires-python = ">=3.12"
+
+dependencies = [
+    "google-adk==1.5.0",
+    "python-dotenv",
+    "toolbox-core",
+    "langchain",
+    "google-genai",
+    "a2a-sdk",
+    "google-cloud-aiplatform[adk,agent_engines]==1.96",
+    "locust",
+    "google-cloud-spanner==3.54.0",
+    "google-adk[eval]",
+    "python-a2a",
+    "gradio",
+    "google-cloud-bigquery",
+    "aiohttp",
+    "google-cloud-storage",
+    "sqlalchemy",
+    "PyJWT[crypto]",
+    "ipykernel>=6.30.1",
+]
+
