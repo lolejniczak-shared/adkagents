@@ -1,0 +1,8 @@
+google-cloud-discoveryengine
+google-cloud-storage 
+requests 
+PyYAML
+python-dotenv
+google-cloud-aiplatform[adk,agent_engines]==1.103.0
+google-auth-oauthlib
+google-genai
