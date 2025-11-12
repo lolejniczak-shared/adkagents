@@ -1,10 +1,10 @@
-google-adk==1.5.0
+google-adk==1.18.0
 python-dotenv
 toolbox-core 
 langchain
 google-genai
 a2a-sdk
-google-cloud-aiplatform[adk,agent_engines]==1.96
+google-cloud-aiplatform[adk,agent_engines]==1.126.1
 locust
 google-cloud-spanner==3.54.0
 google-adk[eval]
@@ -13,6 +13,6 @@ gradio
 google-cloud-bigquery
 aiohttp
 google-cloud-storage
-pip install "google-cloud-alloydb-connector[pg8000]" 
+google-cloud-alloydb-connector[pg8000] 
 sqlalchemy
 PyJWT[crypto]
