@@ -94,7 +94,12 @@ remote_app = client.agent_engines.create(
                 This is basic ADK agent that communicates with InstaVive backend
         """,                                            # Optional.
         ##"labels": labels,                               # Optional.
-        ##"env_vars": env_vars,                           # Optional.
+        "env_vars": {
+            ##"GOOGLE_CLOUD_PROJECT": "genai-app-builder", {'error': {'code': 400, 'message': "Environment variable name 'GOOGLE_CLOUD_PROJECT' is reserved.
+            ##"GOOGLE_GENAI_USE_VERTEXAI": "1",
+            ##"GOOGLE_CLOUD_LOCATION": "us-central1",
+            "MCP_SERVER_URL": "https://mcp-tool-server-680248386202.us-central1.run.app"
+        },                           # Optional.
         ##"build_options": build_options,                 # Optional.
         ##"identity_type": identity_type,                 # Optional. np. types.IdentityType.AGENT_IDENTITY,
         ##"service_account": service_account,             # Optional.
