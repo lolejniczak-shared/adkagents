@@ -5,23 +5,25 @@ from google.auth.transport import requests as google_requests
 from urllib.parse import urlencode
 from urllib.parse import quote_plus # Or just 'quote' if you don't need to encode spaces as '+'
 
-
 class AgentspaceManager:
     """
     A class to manage Agentspace agents and authorizations via the Discovery Engine API,
     using the 'requests' library for HTTP communication.
     """
 
-    def __init__(self, project_id: str, app_id: str):
+    def __init__(self, project_id: str, app_id: str, location: str = "global"):
         """
         Initializes the AgentspaceManager.
 
         Args:
-            project_id: The ID of your Google Cloud project. 
-            app_id: The ID of the Agentspace app. 
+            project_id: The ID of your Google Cloud project.
+            app_id: The ID of the Agentspace app.
+            location: The Google Cloud location for the Agentspace resources (e.g., "global", "us-central1").
+                      Defaults to "global".
         """
         self.project_id = project_id
         self.app_id = app_id
+        self.location = location
         self.base_url = "https://discoveryengine.googleapis.com/v1alpha"
 
     def _get_access_token(self) -> str:
@@ -68,26 +70,26 @@ class AgentspaceManager:
 
     def create_authorization(self, auth_id: str, client_id: str, client_secret: str, auth_uri: str, token_uri: str) -> dict:
         """
-        Creates an authorization resource in Agentspace. 
+        Creates an authorization resource in Agentspace.
 
         Args:
-            auth_id: The ID of the authorization resource. 
-            client_id: The OAuth 2.0 client ID. 
-            client_secret: The OAuth 2.0 client secret. 
-            auth_uri: The endpoint for obtaining an authorization code. 
-            token_uri: The endpoint for exchanging an authorization code for an access token. 
+            auth_id: The ID of the authorization resource.
+            client_id: The OAuth 2.0 client ID.
+            client_secret: The OAuth 2.0 client secret.
+            auth_uri: The endpoint for obtaining an authorization code.
+            token_uri: The endpoint for exchanging an authorization code for an access token.
 
         Returns:
             The created authorization resource.
         """
-        url = f"{self.base_url}/projects/{self.project_id}/locations/global/authorizations?authorizationId={auth_id}"
+        url = f"{self.base_url}/projects/{self.project_id}/locations/{self.location}/authorizations?authorizationId={auth_id}"
         payload = {
-            "name": f"projects/{self.project_id}/locations/global/authorizations/{auth_id}", # 
+            "name": f"projects/{self.project_id}/locations/{self.location}/authorizations/{auth_id}",
             "serverSideOauth2": {
-                "clientId": client_id, # 
-                "clientSecret": client_secret, # 
-                "authorizationUri": auth_uri, # 
-                "tokenUri": token_uri # 
+                "clientId": client_id,
+                "clientSecret": client_secret,
+                "authorizationUri": auth_uri,
+                "tokenUri": token_uri
             }
         }
         return self._execute_request('POST', url, data=payload)
@@ -126,34 +128,35 @@ class AgentspaceManager:
 
     def delete_authorization(self, auth_id: str) -> dict:
         """
-        Deletes an existing authorization resource. 
+        Deletes an existing authorization resource.
 
         Args:
-            auth_id: The ID of the authorization resource to delete. 
+            auth_id: The ID of the authorization resource to delete.
 
         Returns:
             The response from the API.
         """
         cls_auth_id = quote_plus(auth_id)
-        url = f"{self.base_url}/projects/{self.project_id}/locations/global/authorizations?authorizationId={cls_auth_id}" # 
+        url = f"{self.base_url}/projects/{self.project_id}/locations/{self.location}/authorizations/{cls_auth_id}"
         return self._execute_request('DELETE', url)
 
-    def register_agent(self, display_name: str, description: str, tool_description: str, adk_deployment_id: str, icon_uri: str = None, auth_ids: list = None) -> dict:
+    def register_agent(self, display_name: str, description: str, tool_description: str, adk_deployment_id: str, adk_deployment_location: str, icon_uri: str = None, auth_ids: list = None) -> dict:
         """
-        Registers a new agent with Agentspace. 
+        Registers a new agent with Agentspace.
 
         Args:
-            display_name: The display name of the agent. 
-            description: The description of the agent for the user. 
-            tool_description: The description of the agent for the LLM. 
-            adk_deployment_id: The ID of the reasoning engine endpoint. 
-            icon_uri: The public URI of the agent's icon. 
-            auth_ids: A list of authorization resource IDs. 
+            display_name: The display name of the agent.
+            description: The description of the agent for the user.
+            tool_description: The description of the agent for the LLM.
+            adk_deployment_id: The ID of the reasoning engine endpoint.
+            adk_deployment_location: The Google Cloud location where the ADK deployment (reasoning engine) resides.
+            icon_uri: The public URI of the agent's icon.
+            auth_ids: A list of authorization resource IDs.
 
         Returns:
-            The created agent resource. 
+            The created agent resource.
         """
-        url = f"{self.base_url}/projects/{self.project_id}/locations/global/collections/default_collection/engines/{self.app_id}/assistants/default_assistant/agents"
+        url = f"{self.base_url}/projects/{self.project_id}/locations/{self.location}/collections/default_collection/engines/{self.app_id}/assistants/default_assistant/agents"
 
         # Define the core structure of adk_agent_definition
         adk_definition = {
@@ -161,13 +164,13 @@ class AgentspaceManager:
                 "tool_description": tool_description
             },
             "provisioned_reasoning_engine": {
-                "reasoning_engine": f"projects/{self.project_id}/locations/global/reasoningEngines/{adk_deployment_id}"
+                "reasoning_engine": f"projects/{self.project_id}/locations/{adk_deployment_location}/reasoningEngines/{adk_deployment_id}"
             }
         }
 
         # Add optional authorizations directly to the adk_agent_definition
         if auth_ids:
-            adk_definition["authorizations"] = [f"projects/{self.project_id}/locations/global/authorizations/{auth_id}" for auth_id in auth_ids]
+            adk_definition["authorizations"] = [f"projects/{self.project_id}/locations/{self.location}/authorizations/{auth_id}" for auth_id in auth_ids]
 
         # Assemble the final top-level payload
         payload = {
@@ -182,91 +185,94 @@ class AgentspaceManager:
         print(payload)
         return self._execute_request('POST', url, data=payload)
 
-    def update_agent(self, agent_resource_name: str, display_name: str, description: str, tool_description: str, adk_deployment_id: str) -> dict:
+    def update_agent(self, agent_resource_name: str, display_name: str, description: str, tool_description: str, adk_deployment_id: str, adk_deployment_location: str) -> dict:
         """
-        Updates the registration of an existing agent. 
+        Updates the registration of an existing agent.
 
         Args:
-            agent_resource_name: The resource name of the agent to update. 
-            display_name: The display name of the agent. 
-            description: The description of the agent. 
-            tool_description: The description/prompt for the LLM. 
-            adk_deployment_id: The ID of the reasoning engine endpoint. 
+            agent_resource_name: The resource name of the agent to update.
+            display_name: The display name of the agent.
+            description: The description of the agent.
+            tool_description: The description/prompt for the LLM.
+            adk_deployment_id: The ID of the reasoning engine endpoint.
+            adk_deployment_location: The Google Cloud location where the ADK deployment (reasoning engine) resides.
 
         Returns:
             The updated agent resource.
         """
-        url = f"{self.base_url}/{agent_resource_name}" # 
+        url = f"{self.base_url}/{agent_resource_name}"
         payload = {
-            "displayName": display_name, # 
-            "description": description, # 
+            "displayName": display_name,
+            "description": description,
             "adk_agent_definition": {
                 "tool_settings": {
-                    "tool_description": tool_description # 
+                    "tool_description": tool_description
                 },
-                "reasoning_engine": f"projects/{self.project_id}/locations/global/reasoningEngines/{adk_deployment_id}" # 
+                "provisioned_reasoning_engine": {
+                    "reasoning_engine": f"projects/{self.project_id}/locations/{adk_deployment_location}/reasoningEngines/{adk_deployment_id}"
+                }
             }
         }
         return self._execute_request('PATCH', url, data=payload)
 
     def get_agent(self, agent_resource_name: str) -> dict:
         """
-        Views a registered agent. 
+        Views a registered agent.
 
         Args:
-            agent_resource_name: The resource name of the agent to view. 
+            agent_resource_name: The resource name of the agent to view.
 
         Returns:
             The agent resource.
         """
-        url = f"{self.base_url}/{agent_resource_name}" # 
+        url = f"{self.base_url}/{agent_resource_name}"
         return self._execute_request('GET', url)
 
     def list_agents(self) -> dict:
         """
-        Lists all registered agents. 
+        Lists all registered agents.
 
         Returns:
             A list of agent resources.
         """
-        url = f"{self.base_url}/projects/{self.project_id}/locations/global/collections/default_collection/engines/{self.app_id}/assistants/default_assistant/agents" # 
+        url = f"{self.base_url}/projects/{self.project_id}/locations/{self.location}/collections/default_collection/engines/{self.app_id}/assistants/default_assistant/agents"
         return self._execute_request('GET', url)
 
     def delete_agent(self, agent_resource_name: str) -> dict:
         """
-        Deletes the registration of an agent. 
+        Deletes the registration of an agent.
 
         Args:
-            agent_resource_name: The resource name of the agent to delete. 
+            agent_resource_name: The resource name of the agent to delete.
 
         Returns:
             The response from the API.
         """
-        url = f"{self.base_url}/{agent_resource_name}" # 
+        url = f"{self.base_url}/{agent_resource_name}"
         return self._execute_request('DELETE', url)
 
     def get_answers_from_agent(self, query: str, agent_resource_name: str) -> dict:
         """
-        Gets answers from an agent using the assistant API. 
+        Gets answers from an agent using the assistant API.
 
         Args:
-            query: The user's query. 
-            agent_resource_name: The resource name of the registered agent. 
+            query: The user's query.
+            agent_resource_name: The resource name of the registered agent.
 
         Returns:
             The response from the agent.
         """
-        url = f"{self.base_url}/projects/{self.project_id}/locations/global/collections/default_collection/engines/{self.app_id}/assistants/default_assistant:streamAssist" # 
+        url = f"{self.base_url}/projects/{self.project_id}/locations/{self.location}/collections/default_collection/engines/{self.app_id}/assistants/default_assistant:streamAssist"
         payload = {
-            "name": f"projects/{self.project_id}/locations/global/collections/default_collection/engines/{self.app_id}/assistants/default_assistant", # 
+            "name": f"projects/{self.project_id}/locations/{self.location}/collections/default_collection/engines/{self.app_id}/assistants/default_assistant",
             "query": {
-                "text": query # 
+                "text": query
             },
-            "session": f"projects/{self.project_id}/locations/global/collections/default_collection/engines/{self.app_id}/sessions/-", # 
-            "assistSkippingMode": "REQUEST_ASSIST", # 
-            "answerGenerationMode": "AGENT", # 
+            "session": f"projects/{self.project_id}/locations/{self.location}/collections/default_collection/engines/{self.app_id}/sessions/-",
+            "assistSkippingMode": "REQUEST_ASSIST",
+            "answerGenerationMode": "AGENT",
             "agentsConfig": {
-                "agent": agent_resource_name # 
+                "agent": agent_resource_name
             }
         }
         return self._execute_request('POST', url, data=payload)

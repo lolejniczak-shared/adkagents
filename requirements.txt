@@ -16,3 +16,4 @@ google-cloud-storage
 google-cloud-alloydb-connector[pg8000] 
 sqlalchemy
 PyJWT[crypto]
+fastmcp==2.12.5

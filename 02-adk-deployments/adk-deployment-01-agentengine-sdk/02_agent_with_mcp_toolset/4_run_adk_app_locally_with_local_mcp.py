@@ -7,8 +7,8 @@ from vertexai import agent_engines
 from vertexai.agent_engines import AdkApp
 from vertexai.agent_engines import ModuleAgent
 import asyncio
-from agent_remote_mcp.agent import root_agent
-from agent_remote_mcp.agent import mcpt
+from agent_local_mcp.agent import root_agent
+from agent_local_mcp.agent import mcpt
 
 load_dotenv()
 
@@ -23,9 +23,9 @@ vertexai.init(
     staging_bucket=STAGING_BUCKET,
 )
 
+
 app = AdkApp(
-    agent=root_agent,
-    enable_tracing=True,
+    agent=root_agent
 )
 
 # 3. Define an async main function
@@ -34,6 +34,7 @@ async def main():
     try:
         # All your 'await' and 'async for' code goes inside here
         remote_session = await app.async_create_session(user_id=user_id)
+        print(remote_session)
         session_id = remote_session.id
         print(f"Created session: {remote_session.id}")
 
@@ -47,7 +48,6 @@ async def main():
         await mcpt.close()
         
     finally:
-        # FIX #1: Ensure the session is closed to prevent the crash.
         if session_id:
                 print("End of game ...")
 

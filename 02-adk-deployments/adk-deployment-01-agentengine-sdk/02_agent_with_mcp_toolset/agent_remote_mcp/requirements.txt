@@ -1,0 +1,3 @@
+python-dotenv
+google-cloud-aiplatform==1.126.1
+google-adk==1.18.0

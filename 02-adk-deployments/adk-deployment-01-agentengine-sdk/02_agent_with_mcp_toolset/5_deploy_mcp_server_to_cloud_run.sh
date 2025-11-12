@@ -29,4 +29,4 @@ gcloud run deploy ${SERVICE_NAME} \
   --set-env-vars="GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT}" \
   --project=${GOOGLE_CLOUD_PROJECT} \
   --min-instances=1 \
-  --allow-unauthenticated \
+  --allow-unauthenticated 

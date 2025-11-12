@@ -1,1 +1,1 @@
-import . from agent
+from . import agent
