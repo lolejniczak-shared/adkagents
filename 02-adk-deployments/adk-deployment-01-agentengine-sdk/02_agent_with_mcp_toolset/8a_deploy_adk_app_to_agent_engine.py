@@ -11,6 +11,7 @@ import vertexai
 from agent_remote_mcp.agent import root_agent
 from agent_remote_mcp.agent import mcpt
 import json
+from agent_engine_config import _AGENT_ENGINE_CLASS_METHODS 
 
 load_dotenv()
 
@@ -55,16 +56,13 @@ remote_app = agent_engines.create(
 )
 """
 
+"""
 schemas = app.register_operations()
 print(schemas)
 
 import json
 
 def translate_dict_to_schema(input_map):
-    """
-    Translates a dictionary of {api_mode: [method_names]} into a list of 
-    schema objects with placeholder parameters.
-    """
     output_list = []
 
     for api_mode, methods in input_map.items():
@@ -77,20 +75,21 @@ def translate_dict_to_schema(input_map):
             output_list.append(entry)
             
     return output_list
+"""
 
-class_methods = translate_dict_to_schema(schemas)
+class_methods = _AGENT_ENGINE_CLASS_METHODS ##translate_dict_to_schema(schemas)
 
 ## from source files
 ##https://docs.cloud.google.com/agent-builder/agent-engine/deploy#from-source-files
 
 remote_app = client.agent_engines.create(
     config={
-        "source_packages": ["agent_remote_mcp"],             # Required. A list of local file or directory paths to include in the deployment.
-        "entrypoint_module": "agent",         # Required. The fully qualified Python module name containing the agent entrypoint
-        "entrypoint_object": "root_agent",         # Required. The name of the callable object within the entrypoint_module that represents the agent application (for example, root_agent)
+        "source_packages": ["agent_remote_mcp/","agent_engine_app.py"],             # Required. A list of local file or directory paths to include in the deployment.
+        "entrypoint_module": "agent_engine_app",         # Required. The fully qualified Python module name containing the agent entrypoint
+        "entrypoint_object": "adkapp",         # Required. The name of the callable object within the entrypoint_module that represents the agent application (for example, root_agent)
         "class_methods": class_methods, ##app.register_operations(),                 # Required.
-        ##"requirements_file": "requirements.txt",         # Optional. Defaults to requirements.txt at the root directory of the packaged source.
-        "display_name": "InstaVibe agent with AdkApp",                   # Optional.
+        "requirements_file": "./agent_remote_mcp/requirements.txt",         # Optional. Defaults to requirements.txt at the root directory of the packaged source.
+        "display_name": "InstaVibe from source files",                   # Optional.
         "description": """
                 This is basic ADK agent that communicates with InstaVive backend
         """,                                            # Optional.
@@ -104,5 +103,6 @@ remote_app = client.agent_engines.create(
         ##"resource_limits": resource_limits,             # Optional.
         ##"container_concurrency": container_concurrency, # Optional
         ##"encryption_spec": encryption_spec,             # Optional.
+        "agent_framework": 'google-adk'
     },
 )
