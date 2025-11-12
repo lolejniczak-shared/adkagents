@@ -6,7 +6,7 @@ google-genai
 a2a-sdk
 google-cloud-aiplatform[adk,agent_engines]==1.126.1
 locust
-google-cloud-spanner==3.54.0
+google-cloud-spanner==3.56.0
 google-adk[eval]
 python-a2a
 gradio
