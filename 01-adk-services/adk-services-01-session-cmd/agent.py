@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-MODEL = "gemini-2.0-flash-001"
+MODEL = "gemini-2.5-flash"
 AGENT_APP_NAME = 'basic_agent'
 
 async def get_response(runner, user_id, session_id,  message):
@@ -29,7 +29,7 @@ async def main():
 
 
     root_agent = Agent(
-        model="gemini-1.5-flash-002",
+        model=MODEL,
         name='user_assistant',
         instruction="""
         You are helpful assistant. Your role is to answer user questions.
@@ -38,7 +38,6 @@ async def main():
             {user_info}
             </User>
             Current time: {time}.
-
         """,
         tools=[]
     )
@@ -61,7 +60,8 @@ async def main():
     runner = Runner(app_name=AGENT_APP_NAME, 
             agent=root_agent, 
             artifact_service=artifact_service,
-            session_service=session_service)
+            session_service=session_service
+            )
 
 
     ## test
