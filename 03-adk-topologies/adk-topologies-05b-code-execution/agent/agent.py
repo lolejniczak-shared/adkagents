@@ -10,6 +10,7 @@ from google.adk.events import Event, EventActions
 from google.adk.agents.callback_context import CallbackContext
 from google.adk.agents.invocation_context import InvocationContext
 from google.adk.code_executors.agent_engine_sandbox_code_executor import AgentEngineSandboxCodeExecutor
+from google.adk.code_executors.built_in_code_executor import BuiltInCodeExecutor
 from typing import AsyncGenerator
 from pydantic import BaseModel
 from pydantic import Field
@@ -71,7 +72,7 @@ root_agent = Agent(
     model="gemini-2.5-flash",
     name="agent_engine_code_execution_agent",
     instruction=base_system_instruction() + """
-    
+
         You need to assist the user with their queries by looking at the data and the context in the conversation.
         You final answer should summarize the code and code execution relevant to the user query.
 
@@ -85,8 +86,9 @@ root_agent = Agent(
 
 
         """,
-    code_executor = AgentEngineSandboxCodeExecutor(
-        sandbox_resource_name = SANDBOX_ENVIRONMENT
-    )
+    code_executor = BuiltInCodeExecutor() 
+    ##AgentEngineSandboxCodeExecutor(
+    ##    sandbox_resource_name = SANDBOX_ENVIRONMENT
+    ##)
 )
 
