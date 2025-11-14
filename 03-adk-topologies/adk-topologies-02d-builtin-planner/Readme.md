@@ -1,0 +1,1 @@
+analyze data privacy requirements for enterprise customers regarding data warehouse and generate marketing campaign that focuses on security features specifically addressing these requirements.

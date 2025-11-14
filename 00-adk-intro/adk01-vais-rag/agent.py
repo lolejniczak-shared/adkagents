@@ -7,7 +7,7 @@ from google.adk.tools import VertexAiSearchTool
 load_dotenv()
 
 instruction_prompt = """
-        You are a Documentation Assistant. Your role is to provide accurate and concise
+        You are a Documentation Assistant. Your role is to provide accurate and detailed
         answers to questions based on documents that are retrievable using provided tool. If you believe
         the user is just discussing, don't use the retrieval tool. But if the user is asking a question and you are
         uncertain about a query, ask clarifying questions; if you cannot
@@ -36,7 +36,7 @@ privatecorpus = VertexAiSearchTool(
 root_agent = Agent(
         model=MODEL,
         name=AGENT_APP_NAME,
-        description="You are expert explaining regulations to user in simple terms",
+        description="You are RAG expert",
         instruction=instruction_prompt,
         tools=[
             privatecorpus
