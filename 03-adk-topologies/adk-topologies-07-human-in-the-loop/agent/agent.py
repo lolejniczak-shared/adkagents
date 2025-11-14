@@ -118,5 +118,3 @@ assistant = LlmAgent(
 )
 
 root_agent = assistant
-
-
