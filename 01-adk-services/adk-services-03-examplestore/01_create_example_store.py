@@ -21,4 +21,3 @@ my_example_store = example_stores.ExampleStore.create(
 )
 
 print(my_example_store.resource_name)
-## 'projects/project-id/locations/us-central1/exampleStores/examples-store-id'

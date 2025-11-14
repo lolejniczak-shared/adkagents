@@ -45,7 +45,6 @@ client = genai.Client(
     location=REGION
 )
 
-
 question = "What is the exchange rate from polish Zloty to US dollars from yesterday?"
 
 user_content = types.Content(
@@ -57,8 +56,8 @@ function_call = client.models.generate_content(
   model="gemini-2.0-flash",
   contents = user_content,
   config=types.GenerateContentConfig(
-  tools=[types.Tool(function_declarations=[get_exchange_rate_func])],
-  system_instruction=[types.Part.from_text(text="""You are currency exchange expert. Your goal is to assist users and answer their questions. Today is 18.04.2025""")],
+      tools=[types.Tool(function_declarations=[get_exchange_rate_func])],
+      system_instruction=[types.Part.from_text(text="""You are currency exchange expert. Your goal is to assist users and answer their questions. Today is 18.04.2025""")],
   )
 )
 
@@ -115,7 +114,7 @@ function_call_response = types.Content(
 
 final_model_response = types.Content(
   role="model",
-  parts=[types.Part(text="Here are the details I have by checkeding with frankfurter.app. You will get 0.26736 US dollar for every Polish zloty. This exchange rate is from 27th of May 2025. ")],
+  parts=[types.Part(text="Here are the details I have from frankfurter.app. You will get 0.26736 US dollar for every Polish zloty. This exchange rate is of 18th of April 2025. ")],
 )
 
 
@@ -127,9 +126,9 @@ example = {
   "contents_example": {
     "contents": [user_content.to_json_dict()],
     "expected_contents": [
-      {"content": function_call.candidates[0].content.to_json_dict()},
-      {"content": function_call_response.to_json_dict()},
-      {"content": final_model_response.to_json_dict()},
+      {"content": function_call.candidates[0].content.to_json_dict()}, ## expected function call
+      {"content": function_call_response.to_json_dict()},  ## expected function call response
+      {"content": final_model_response.to_json_dict()}, ## expected final model response 
     ],
   },
   "search_key": question,

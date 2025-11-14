@@ -13,7 +13,6 @@ from google.adk.tools import ExampleTool
 
 load_dotenv()
 
-MODEL = "gemini-2.0-flash-001"
 AGENT_APP_NAME = 'basic_agent'
 EXAMPLE_STORE= os.getenv('EXAMPLE_STORE')
 
@@ -42,14 +41,11 @@ def get_exchange_rate(
             )
             return response.json()
 
-example_store = VertexAiExampleStore(EXAMPLE_STORE)
-examples_tool = ExampleTool(example_store)
 
 root_agent = Agent(
-        model="gemini-1.5-flash-002",
+        model="gemini-2.5-flash",
         name='user_assistant',
         instruction="""
         You are helpful assistant. You provide answers on questions about currency exchange""",
-        tools=[get_exchange_rate, examples_tool],
-        ##examples = example_store #####!!!!!!! 
-    )
+        tools=[get_exchange_rate,]
+)

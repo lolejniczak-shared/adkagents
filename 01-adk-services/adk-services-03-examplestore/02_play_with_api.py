@@ -53,7 +53,7 @@ user_content = types.Content(
 )
 
 response = client.models.generate_content(
-  model="gemini-2.0-flash",
+  model="gemini-2.5-flash",
   contents = user_content,
   config=types.GenerateContentConfig(
         tools=[types.Tool(function_declarations=[get_exchange_rate_func])],

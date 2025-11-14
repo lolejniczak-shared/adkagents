@@ -1,0 +1,1 @@
+adk web --memory_service_uri AGENT_ENGINE_RESOURCE_NAME
